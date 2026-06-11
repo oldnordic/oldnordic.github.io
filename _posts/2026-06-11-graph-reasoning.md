@@ -5,7 +5,7 @@ date: 2026-06-11
 categories: engineering
 ---
 
-Over three months I ran a series of experiments testing whether graph-based reasoning -- not transformers, not neural networks, but pure graph traversal with edge-weight reinforcement -- can solve problems that normally require deep learning. The repo is at [github.com/oldnordic/ai](https://github.com/oldnordic/ai), 62K lines of Rust, 96 standalone experiment binaries, every result logged with the failures alongside the wins.
+Over three months I ran a series of experiments testing whether graph-based reasoning -- not transformers, not neural networks, but pure graph traversal with edge-weight reinforcement -- can solve problems that normally require deep learning. The repo is at [github.com/oldnordic/ai](https://github.com/oldnordic/ai), 62K lines of Rust, 98 standalone experiment binaries, every result logged with the failures alongside the wins.
 
 This post is the timeline. I'm not claiming the approach replaces transformers. I'm documenting what happened when I tried.
 
@@ -72,17 +72,21 @@ The scale stress test (100 → 500 → 1,000 → 5,000 words) showed constant 83
 
 ## Proof exploration and algebra (March 28-29)
 
-I gave the system arithmetic and algebraic rules and asked it to discover proofs via graph traversal. The graph has mathematical facts as nodes, implications as edges.
+Phase 2a placed mathematical facts as nodes (literals 0-20 on a number line, operators +,-,x,/ above) and used the same UCB graph traversal to discover arithmetic. Then Phase 2b showed that solving for x in `x + a = b` isn't a new capability -- it's the same traversal, just starting from the result node instead of the first operand.
 
-**Rule-template generalization** was the key result. Given training on specific proofs (2+3=5, 4+1=5), the system generalized to novel inputs (7+8=15) via learned rule templates. Ablation study:
+Phase 3 went further: modus ponens proof discovery. The graph has propositions as nodes, implications as edges. Given 8 training proofs (P implies Q, P is true, therefore Q), can the system generalize to 2 held-out proofs it's never seen?
+
+**Rule-template generalization** was the key result. The ablation (5 configs, 80/20 split, 10 modus ponens proofs):
 
 | Condition | Generalization |
 |-----------|---------------|
-| Full system | 1.0 (perfect) |
-| No templates | 0.0 (nothing) |
-| Template confidence 0.01 | 0.0 (noise) |
+| Full system | 100% (2/2 held-out) |
+| No templates | 0% (nothing) |
+| Template confidence 0.01 | 0% (same as noise) |
+| No graduation gate | 100% (not load-bearing here) |
+| No warmup | 100% (not load-bearing here) |
 
-Templates are necessary and sufficient. Without them, the system memorizes specific paths but can't abstract.
+Templates are the critical mechanism. Without them, the system memorizes specific proof paths but can't abstract to novel proofs.
 
 ### Template timing bug
 
@@ -203,7 +207,7 @@ This is a narrow result -- the grammar is small (9 operators + 3 functions), the
 
 **4. The approach has real limits.** It doesn't generate text. It doesn't understand context the way a 70B model does. What it does is retrieve, compose, and discover -- deterministically, auditably, without a GPU. For code intelligence (search, impact analysis, pattern discovery), that's enough.
 
-**5. Honesty in research logs matters.** Every experiment in the CHANGELOG has the failures next to the successes. The "winner-take-all" correction, the data leakage fix, the HDC convergence failure. The point isn't to look good. The point is to know what actually works.
+**5. Honesty in research logs matters.** Every experiment in the CHANGELOG has the failures next to the successes. The "winner-take-all" correction, the template timing bug, the HDC convergence failure. The point isn't to look good. The point is to know what actually works.
 
 ---
 
@@ -212,7 +216,7 @@ This is a narrow result -- the grammar is small (9 operators + 3 functions), the
 | Metric | Value |
 |--------|-------|
 | Lines of Rust | 61,945 |
-| Experiment binaries | 96 |
+| Experiment binaries | 98 |
 | Commits | 41 |
 | Development span | March - May 2026 |
 | Best precision (code search, tested queries) | 100% at 5 |
