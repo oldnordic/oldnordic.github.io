@@ -1,0 +1,20 @@
+title: Luiz Spies — Technical Notes
+description: >-
+  Notes on language geometry, LLM inference, code intelligence, and agentic AI systems.
+  All results reproducible. No hype.
+author: Luiz Spies
+email: luiz.spies@gmail.com
+baseurl: ""
+url: "https://oldnordic.github.io"
+
+github_username: oldnordic
+
+theme: minima
+minima:
+  skin: classic
+
+show_excerpts: true
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
