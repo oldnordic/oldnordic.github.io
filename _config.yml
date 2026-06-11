@@ -9,8 +9,6 @@ url: "https://oldnordic.github.io"
 github_username: oldnordic
 
 theme: minima
-minima:
-  skin: auto
 
 show_excerpts: true
 
