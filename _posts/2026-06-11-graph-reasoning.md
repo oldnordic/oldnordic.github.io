@@ -5,7 +5,7 @@ date: 2026-06-11
 categories: engineering
 ---
 
-Over three months I ran a series of experiments testing whether graph-based reasoning -- not transformers, not neural networks, but pure graph traversal with learned weights -- can solve problems that normally require deep learning. The repo is at [github.com/oldnordic/ai](https://github.com/oldnordic/ai), 62K lines of Rust, 96 standalone experiment binaries, every result logged with the failures alongside the wins.
+Over three months I ran a series of experiments testing whether graph-based reasoning -- not transformers, not neural networks, but pure graph traversal with edge-weight reinforcement -- can solve problems that normally require deep learning. The repo is at [github.com/oldnordic/ai](https://github.com/oldnordic/ai), 62K lines of Rust, 96 standalone experiment binaries, every result logged with the failures alongside the wins.
 
 This post is the timeline. I'm not claiming the approach replaces transformers. I'm documenting what happened when I tried.
 
@@ -213,7 +213,7 @@ The v5 version adds `sin`, `cos`, `sqrt` functions, which the system discovers b
 | Experiment binaries | 96 |
 | Commits | 41 |
 | Development span | March - May 2026 |
-| Best precision (code search) | 100% at 5 |
+| Best precision (code search, tested queries) | 100% at 5 |
 | Best scale (word assembly) | 5,000 words, 83.3% success |
 | Wiki-scale graph nodes | 211,045 |
 | Graph repetition rate | 0.00% |
