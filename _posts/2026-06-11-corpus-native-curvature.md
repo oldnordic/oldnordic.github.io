@@ -65,7 +65,21 @@ This is consistent with the Yale result but doesn't reproduce the full bimodal s
 
 Elapsed time on Ryzen 7 7800X3D: 30.8 seconds.
 
+## How to reproduce
+
+```bash
+git clone https://github.com/oldnordic/Memoria
+cd Memoria
+pip install datasets transformers scikit-learn networkx matplotlib scipy
+python scripts/experiment_curvature.py
+# outputs: data/curvature_results.json, data/curvature_kappa_dist.png
+```
+
+Hardware used: AMD Ryzen 7 7800X3D, 64 GB RAM, no GPU required. Elapsed: 30.8 seconds.
+
+The script downloads TinyStories (~2 GB) on first run via HuggingFace datasets. `geographdb` is a local dependency from the same repo — import path is patched in the script header.
+
 ## References
 
-- Kuo et al., "Geometry of Transformer Embeddings" (Yale 2024) — the curvature measurements in trained LLMs this experiment responds to
+- Kuo et al., "Geometry of Transformer Embeddings" (Yale 2024) — curvature measurements in trained LLMs this experiment responds to
 - Ollivier, "Ricci curvature of Markov chains on metric spaces" (2009) — original definition
