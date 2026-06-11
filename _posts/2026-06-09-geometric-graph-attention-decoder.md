@@ -7,7 +7,7 @@ categories: language-geometry
 
 This post is the decoder half of a larger experiment: can a language model decode by moving through a graph instead of comparing query/key vectors?
 
-The standard transformer decoder scores every candidate token with `softmax(QK^T)`. The geometric alternative scores candidates by how well an outgoing edge continues the local curvature of the graph. No learned attention weights, no softmax over the full vocabulary, no feed-forward on hidden states. The graph itself is the model.
+The standard transformer decoder scores every candidate token with `softmax(QK^T)`. The geometric alternative scores candidates by how well an outgoing edge continues the local curvature of the graph. No learned attention weights, no softmax over the full vocabulary, no feed-forward on hidden states. For this experiment, the graph acts as the decoding substrate.
 
 ## Mechanism
 
@@ -23,17 +23,17 @@ Three pieces are wired together in [`geographdb-core`](https://github.com/oldnor
 
 Two simple counts:
 
-- `repetition_rate = unique_nodes / steps`. Higher means the walker visits more distinct nodes; lower means it loops.
+- `unique-node coverage rate = unique_nodes / steps`. Higher means the walker visits more distinct nodes; lower means it loops.
 - `cross-community` transitions: how often the walker moves from one side of the graph to the other.
 
-Interpreting the two together matters. A walker can achieve high `repetition_rate` by bouncing around inside one community without ever leaving. The geometric walker deliberately trades some local coverage for cross-community coherence.
+Interpreting the two together matters. A walker can achieve high coverage by bouncing around inside one community without ever leaving. The geometric walker deliberately trades some local coverage for cross-community coherence.
 
 ## Toy graph
 
 A 6-node graph with two clusters:
 
-| Mode | Unique nodes | Repetition rate | Cross-community |
-|------|--------------|-----------------|-----------------|
+| Mode | Unique nodes | Coverage rate | Cross-community |
+|------|--------------|---------------|-----------------|
 | Distance-KNN | 2 | 0.065 | 0 |
 | Graph attention + UCB | 6 | 0.194 | 3 |
 | Graph attention + UCB + κ | 6 | 0.194 | **7** |
@@ -49,8 +49,8 @@ The same comparison on the full TinyStories training set:
 - 43,047 vocabulary tokens → 54,919 sense-nodes
 - 859,917 PMI edges
 
-| Mode | Unique nodes | Repetition rate | Cross-community |
-|------|--------------|-----------------|-----------------|
+| Mode | Unique nodes | Coverage rate | Cross-community |
+|------|--------------|---------------|-----------------|
 | Distance-KNN | 397 | 0.792 | 62 |
 | Graph attention + UCB | 284 | 0.567 | 186 |
 | Graph attention + UCB + κ | **304** | 0.607 | **247** |
