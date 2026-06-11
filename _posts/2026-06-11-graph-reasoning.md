@@ -84,9 +84,9 @@ I gave the system arithmetic and algebraic rules and asked it to discover proofs
 
 Templates are necessary and sufficient. Without them, the system memorizes specific paths but can't abstract.
 
-### Integrity hardening (April 9)
+### Template timing bug
 
-The initial ablation had a subtle data leakage bug: held-out proofs were being seeded during training. The "1.0 generalization" was partially contaminated. After fixing the leakage, the numbers changed. The checked-in `results/ablation.json` is the historical snapshot -- I marked it as such rather than quietly replacing it.
+The initial implementation applied rule templates during training, which meant training exploration weakened the template-created edges back to noise. Template confidence was also set to 0.01 -- same as bootstrap noise -- so template-backed conclusions couldn't be distinguished from random distractors. The fix: apply templates *after* all 20 training rounds, and bump template confidence to 0.05 (5x signal over noise). The checked-in `results/ablation.json` is the historical snapshot -- I marked it as such rather than quietly replacing it.
 
 ---
 
@@ -185,9 +185,11 @@ Each operation starts with equal priority (0.5). One generic evaluator: sort ope
 <, >  : 0.300   (comparison -- binds loosest)
 ```
 
-The hierarchy emerged: `^ > */% > +-> > <==`. PEMDAS was never in the code. It was discovered from examples. Testing on novel expressions: 6/6 correct (100%).
+The hierarchy emerged: `^ > */% > +-> > <==`. PEMDAS was never in the code. It was discovered from examples.
 
-The v5 version adds `sin`, `cos`, `sqrt` functions, which the system discovers bind tighter than arithmetic via parse-tree recursion. Again: no hardcoded precedence, no rules. Just coordinate descent on accuracy.
+The initial version (v1) tested on 6 novel mixed-arithmetic expressions and got 100%. Later versions expanded the grammar: v3 added parentheses, exponents, unary minus, and variables (4 ops → 6 ops). v4 added comparison operators (`<`, `>`, `==`) and discovered they bind looser than arithmetic. v5 added `sin`, `cos`, `sqrt` functions, which the system discovered bind tightest of all via parse-tree recursion. The final test set is 40 expressions covering all these operators, and the system scores 100% on the lot.
+
+This is a narrow result -- the grammar is small (9 operators + 3 functions), the training data is unambiguous, and the coordinate descent converges in ~10 rounds. It proves precedence can be *discovered* rather than hardcoded, but it doesn't scale to natural language ambiguity.
 
 ---
 
@@ -197,7 +199,7 @@ The v5 version adds `sin`, `cos`, `sqrt` functions, which the system discovers b
 
 **2. Compositionality comes from shared sub-paths.** Not from vector arithmetic. Not from attention patterns. The fact that C→CA is shared between CAT, CAR, and CARE is what makes the system compositional. The graph encodes this directly.
 
-**3. Failures are more informative than successes.** The HDC failure taught me that the structural layer doesn't depend on semantics. The hub-and-spoke "failure" that never happened taught me to verify claims experimentally. The data leakage bug taught me to harden the ablation pipeline.
+**3. Failures are more informative than successes.** The HDC failure taught me that the structural layer doesn't depend on semantics. The hub-and-spoke "failure" that never happened taught me to verify claims experimentally. The template timing bug taught me to check when knowledge gets applied, not just what knowledge exists.
 
 **4. The approach has real limits.** It doesn't generate text. It doesn't understand context the way a 70B model does. What it does is retrieve, compose, and discover -- deterministically, auditably, without a GPU. For code intelligence (search, impact analysis, pattern discovery), that's enough.
 
