@@ -113,6 +113,26 @@ The `0.0` is the edge-weight threshold for the fast κ computation; TinyStories 
 - D3: `geographdb-experiments/src/bin/d3_attention_comparison.rs`
 - E6: `geographdb-core/src/algorithms/ricci.rs` (`curvature_map_fast`)
 
+## Encoder note
+
+The decoder experiments above assume the node positions are already meaningful. A first encoder test (E2) trains a small MLP, `CoordinateBranch`, to predict Memoria's layer-23 PCA activation coordinates directly from token IDs.
+
+Those PCA coordinates are **unnormalized**:
+
+| Stat | Value |
+|------|-------|
+| Per-axis std | `[9.55, 7.62, 6.20]` |
+| Norm std (‖σ‖) | **13.70** |
+| Mean norm (‖x‖) | **12.06** |
+
+After 200 epochs the model reaches **mean L2 error = 0.519**. In context:
+
+- `0.519 / 13.70 ≈ 3.8%` of the coordinate spread
+- **92.6%** of nodes are within L2 error < 1.0
+- **99.99%** are within L2 error < 2.0
+
+That says PMI co-occurrence geometry captures the **rough layout** of the activation manifold, but not the fine-grained positions. It is a meaningful correlation, not a pixel-perfect reconstruction.
+
 ## Next
 
-The encoder side is the next piece: learning token positions from raw text and from measured activation coordinates. The decoder experiment above assumes the positions are already good; the encoder experiment asks where those positions can come from without training a full transformer.
+A full encoder-decoder post will connect the CoordinateBranch encoder (positions from text and from measured activations) back to the geometric decoder above.
