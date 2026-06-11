@@ -65,7 +65,7 @@ backend.insert_edge(EdgeSpec {
 
 ### Graph algorithms
 
-35+ algorithms implemented: BFS, DFS, k-hop, shortest path, PageRank, betweenness centrality, SCC (Tarjan), topological sort, Louvain community detection, label propagation, cycle search, dominator trees, control dependence, taint analysis, subgraph isomorphism, critical path, and more.
+35+ algorithms implemented ([full list in the README](https://github.com/oldnordic/sqlitegraph#graph-algorithms)): BFS, DFS, k-hop, shortest path, PageRank, betweenness centrality, SCC (Tarjan), topological sort, Louvain community detection, label propagation, cycle search, dominator trees, control dependence, taint analysis, subgraph isomorphism, critical path, and more.
 
 ```rust
 let neighbors = backend.bfs(alice, 2, sqlitegraph::Direction::Outgoing)?;
@@ -125,7 +125,7 @@ The SIMD distance kernels auto-detect the highest available instruction set at r
 
 **SQLite backend** (default): standard `.db` file. Stable, inspectable with any SQLite tool, scales well at larger graph sizes. The mature B-tree indexing and mmap give it good behavior at 50K+ nodes.
 
-**Native V3 backend**: custom B+Tree page store, `.graph` file. Adds LRU cache, parallel BFS, and pub/sub. Faster than SQLite for warm-cache point lookups (~27x at single-record reads). Slower than SQLite at large-scale traversals.
+**Native V3 backend**: custom B+Tree page store, `.graph` file. Adds LRU cache, parallel BFS, and pub/sub. Faster than SQLite for warm-cache point lookups (~27x at single-record reads). Slower than SQLite at large-scale traversals. Still included in the crate, but for the codebase sizes in my stack SQLite covers the workload so I default to it.
 
 From the 2026-06-07 benchmarks on Ryzen 7800X3D:
 
@@ -135,7 +135,7 @@ From the 2026-06-07 benchmarks on Ryzen 7800X3D:
 | BFS 10K nodes / 50K edges | 26.5 ms | 56.2 ms |
 | Point lookup (warm cache) | 3965 ns | 146 ns |
 
-SQLite is better for traversal workloads. V3 is better when you're doing many point lookups with a warm cache. For code intelligence, most of my workloads are traversal-heavy, so I default to the SQLite backend.
+SQLite wins on traversal workloads. V3 wins on warm-cache point lookups. For code intelligence, most of my workloads are traversal-heavy, so SQLite is the default.
 
 ---
 
