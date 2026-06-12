@@ -103,15 +103,36 @@ Two things are worth unpacking here.
 
 ---
 
-## What's next
+## 20,000 stories, 15 epochs: the full result
 
-The 20,000-story run is in progress. The hypothesis: with 10x more co-occurrence data, the SVD produces better-conditioned positions — tokens that actually separate in 3D space — and the geometric model should start to approach or beat bigram.
+The 20k run added two variants not tested before: a **trigram** model (takes two previous token IDs, no geometry) and a **hybrid** model (two previous token IDs + 8 previous 3D positions). This makes the comparison direct: does geometry add anything on top of token identity?
 
-If it does: the 8-token context advantage starts to show. Bigram can only use the previous token; the geometric model can use the last 8 positions and their spatial relationships.
+| Model | Validation perplexity |
+|-------|----------------------|
+| Bigram baseline | 72.97 |
+| Trigram (token identity only) | 32.02 |
+| Hybrid (token identity + geometry) | 43.24 |
+| Hybrid + κ weighting | 43.81 |
 
-If it doesn't: the 3D PMI positions don't carry enough discriminative information for next-token prediction, and the architecture needs either higher-dimensional coordinates or a hybrid that includes token identity alongside the geometric features.
+**Geometry does not add signal.** Trigram beats hybrid by 11 perplexity points. The MLP gets a cleaner signal from two token IDs than from two token IDs plus 8 × 3D coordinates. The curvature-weighted variant is slightly worse than plain hybrid.
 
-Both outcomes are informative.
+Training dynamics match the numbers. Trigram fit the training set harder and plateaued around loss 3.18. Hybrid plateaued around 3.61 and started overfitting after epoch 9 — the geometric features are hurting generalisation, not helping it.
+
+**Why geometry doesn't help here:**
+
+PMI+SVD positions encode shared co-occurrence neighborhood structure. Tokens that appear in similar contexts end up nearby in 3D space. That's useful for finding semantically related tokens, but next-token prediction doesn't need semantically related tokens — it needs the likely *next* token given the current context. A 3D coordinate tells you what a token is *like*; it doesn't tell you what comes after it. The token ID tells you both.
+
+The 8-position geometric context should in principle carry more information than a single token ID (which is what bigram uses). In practice, the MLP can't extract that signal from the SVD coordinates. The two-token-ID trigram dominates by a large margin over everything else.
+
+---
+
+## Conclusion: a clean negative result
+
+The hypothesis was that corpus-native 3D positions would encode useful "next-token direction" information that supplements or replaces token identity. They don't, at least not in this setup.
+
+The result is clean and reproducible. Trigram (32 ppl) beats hybrid (43 ppl) on the same data, same architecture, same training budget. Geometry adds noise.
+
+What this doesn't rule out: higher-dimensional coordinates, different graph constructions (dependency parse instead of PMI co-occurrence), or using geometry for tasks where spatial relationships matter more directly (code structure, formal languages). The specific claim — PMI+SVD positions as next-token predictors — is answered: they don't carry the right signal for this task.
 
 ---
 
