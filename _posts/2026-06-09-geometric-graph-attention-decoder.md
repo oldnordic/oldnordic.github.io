@@ -135,4 +135,4 @@ That says PMI co-occurrence geometry captures the **rough layout** of the activa
 
 ## Next
 
-A full encoder-decoder post will connect the CoordinateBranch encoder (positions from text and from measured activations) back to the geometric decoder above.
+Training results — connecting the geometric graph to a learning loop — are in [Geometric Language Model: First Training Results](/language-geometry/2026/06/12/geometric-lm-training.html). That post covers the pure-Rust MLP+Adam training infrastructure, the mini-batch fix that stopped early divergence, and the first perplexity comparison against a bigram baseline on TinyStories.
