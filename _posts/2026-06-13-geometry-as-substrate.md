@@ -107,7 +107,19 @@ If that curvature signal can be incorporated as a per-token feature — alongsid
 
 The immediate next experiment: **directed transition matrix substrate**. One variable changes — PMI positions swap for transition-spectral positions. Same geo-attention model. If the gap with trigram closes, directionality was the bottleneck and the architecture is sound.
 
-If the gap doesn't close: the problem is static geometry regardless of directionality, and **learned edge plasticity** becomes the next experiment. Start from a dense k-NN initial graph, make edge weights learnable, train with the same gradient that updates attention weights.
+**That experiment ran. Directionality is not the missing piece.**
+
+| Substrate | Best val ppl | Epoch |
+|---|---|---|
+| PMI (undirected co-occurrence) | 50.45 | 2 |
+| Transition (directed successor) | 50.46 | 1 |
+| Trigram baseline | 32.02 | — |
+
+Both substrates converge to ~50.5 ppl and then overfit. The difference between them is 0.01 ppl — noise. Whether the geometry encodes symmetric similarity or directed successor probability, the ceiling is the same.
+
+The gap is not about what the static geometry encodes. It's about the fact that it's static. A pre-computed position — whether from PMI or a transition matrix — gives the attention mechanism a fixed map. The map has a hard ceiling around 50 ppl regardless of how it was built. The trigram doesn't use a map; it reads successor counts directly from the training distribution. That's why it reaches 32.
+
+The problem is static geometry itself. **Learned edge plasticity** is the next experiment: make edge weights learnable, train them with the same gradient that updates attention weights. The topology stays fixed (initial k-NN graph) but edges strengthen or weaken from prediction error. The geometry self-organizes toward what the task needs rather than what corpus statistics provided at build time.
 
 Longer term:
 
