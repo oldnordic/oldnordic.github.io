@@ -126,13 +126,51 @@ The 8-position geometric context should in principle carry more information than
 
 ---
 
-## Conclusion: a clean negative result
+## Geo-attention: single-head graph attention over geometric neighbors
 
-The hypothesis was that corpus-native 3D positions would encode useful "next-token direction" information that supplements or replaces token identity. They don't, at least not in this setup.
+The MLP result raised a different question: maybe the architecture is the constraint, not the representation. An MLP treats all 8 context positions equally and independently. A token's geometric neighbors might carry signal that only becomes useful when actively queried — matching what the current token is "looking for" against what its neighbors know.
 
-The result is clean and reproducible. Trigram (32 ppl) beats hybrid (43 ppl) on the same data, same architecture, same training budget. Geometry adds noise.
+`GraphAttentionClassifier` implements this directly:
 
-What this doesn't rule out: higher-dimensional coordinates, different graph constructions (dependency parse instead of PMI co-occurrence), or using geometry for tasks where spatial relationships matter more directly (code structure, formal languages). The specific claim — PMI+SVD positions as next-token predictors — is answered: they don't carry the right signal for this task.
+- Token embedding table (learned)
+- Learned W_q, W_k, W_v projections
+- Each context token attends to itself + its k geometric neighbors from the PMI graph
+- Residual update: `h = embedding + attention(...)`
+- MLP head on the last context position
+- Full backward pass through attention weights and MLP
+
+The same 20k/15ep setup, four variants in parallel:
+
+| Model | Validation perplexity |
+|-------|----------------------|
+| One-hot trigram (baseline) | 32.02 |
+| Geo-attention + 4 neighbors | 55.54 |
+| Geometric rotated + 4 neighbors | 126.85 |
+| Geometric absolute | 145.08 |
+| Geometric rotated (no neighbors) | 272.98 |
+
+**Attention over geometry is much better than MLP over geometry.** Geo-attention (55.54) is roughly 2.5x better than the best MLP-on-geometry variant (127 ppl). The query/key/value mechanism gives the model a "search and correlate" capability the flat MLP doesn't have: it can weight neighbors selectively based on what the current token embedding is asking for.
+
+**Geometry still loses to token identity.** Even with attention, geo-attention is 23 ppl behind one-hot trigram. Rotation alone (no neighbors) was near-useless (273 ppl); adding 4 neighbors rescued it to 127 ppl. Local geometric neighborhoods carry some signal — but only when actively queried, and not enough to close the gap with trigram.
+
+**Why the gap persists.** PMI+SVD positions cluster tokens by shared co-occurrence context — tokens that appear in similar environments end up nearby in 3D space. That's a *semantic* similarity measure. Next-token prediction needs *successor* structure: which token tends to follow this one. These are different things. "Dog" and "cat" are geometric neighbors (similar contexts); neither predicts the other as a next token. The trigram baseline reads co-occurrence directly as successor frequency. The PMI graph doesn't preserve that direction.
+
+---
+
+## Where this leaves things
+
+The full experiment arc so far, at 20k stories / 15 epochs:
+
+| Architecture | Representation | Validation ppl |
+|---|---|---|
+| MLP | One-hot trigram | **32.02** |
+| MLP | Hybrid (token ID + geometry) | 43.24 |
+| Attention | Graph neighbors | 55.54 |
+| MLP | Geometric rotated + neighbors | 126.85 |
+| MLP | Geometric absolute | 145.08 |
+| MLP | Geometric rotated | 272.98 |
+
+The bottleneck is the PMI+SVD graph construction, not the model. To beat trigram with geometry, the geometric space itself needs to encode successor structure — either learned end-to-end, or derived from a graph that preserves directional co-occurrence rather than symmetric neighborhood similarity. That's the next question.
 
 ---
 
