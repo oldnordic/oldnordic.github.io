@@ -173,18 +173,21 @@ magellan's call graph is a graph. The question I wanted to answer: can a GNN tra
 
 The experiment: extract graph features from magellan (call-graph edges, symbol kinds, CFG complexity, blast-zone size), label 2,474 functions by outcome quality, train a GNN. Result: 0.85 AUC. The model learns to identify promising candidates from graph structure alone.
 
-Connected to [openevolve](https://github.com/openevolve/openevolve) -- an open-source implementation of the evolutionary program synthesis approach -- the intended loop is:
+The intended pipeline connects to [openevolve](https://github.com/openevolve/openevolve), an open-source project (not mine -- credit to its authors) implementing evolutionary program synthesis. openevolve drives the improvement search; the GNN drives the nomination. The full loop:
 
 1. GNN ranks candidate functions from the call graph
 2. A subagent creates a local git branch per candidate
-3. The subagent implements the improvement (guided by openevolve's evolutionary search)
-4. Criterion benchmarks run to measure the delta
-5. Regression tests and the full test suite validate nothing broke
-6. A structured report is written to disk
+3. The GNN's ranked candidate and graph context are pushed to a **local model** (running via ollama or rocmforge) -- no cloud API, no external calls
+4. The local model generates the improvement guided by openevolve's evolutionary search
+5. Criterion benchmarks run to measure the delta
+6. Regression tests and the full test suite validate nothing broke
+7. A structured report is written to disk
+
+Step 3 is important: the candidate goes to a local model, not a frontier API. The graph context (call graph, blast zone, CFG complexity) is what makes a smaller local model useful here -- it's not reasoning from scratch, it's operating on structured evidence the GNN already extracted. The size of model needed drops significantly when the nomination and context are precise.
 
 The engineer reviews the report in the morning. Each candidate is isolated on its own branch -- reviewable, discardable, safe to reject. The human stays in the loop at the decision boundary; the autonomous work happens while they're sleeping.
 
-Early experiment. The numbers are real (0.85 AUC on nomination); the full overnight pipeline isn't finished. But the architecture is deliberate: graph evidence for nomination, isolated branches for safety, benchmark + test gate for verification, human review for decisions. The same failure modes the cron experiments exposed -- hallucinated success, scope creep, broken tests silently ignored -- are all addressed as hard gates in this loop.
+Early experiment. The numbers are real (0.85 AUC on nomination); the full overnight pipeline isn't finished. But the architecture is deliberate: graph evidence for nomination, local inference for privacy and cost, isolated branches for safety, benchmark + test gate for verification, human review for decisions. The same failure modes the cron experiments exposed -- hallucinated success, scope creep, broken tests silently ignored -- are all addressed as hard gates in this loop.
 
 If it works as intended for performance improvements, the same framework extends naturally to security: GNN identifies structurally suspicious functions (high complexity, external inputs, unvalidated paths), the subagent attempts to reproduce a vulnerability, the test suite validates the patch, the report flags it for review. CVE finding and patching in your own codebase, running overnight, with the same branch-isolation and test-gate discipline. Defensive use -- finding your own vulnerabilities before someone else does. That's the direction.
 
