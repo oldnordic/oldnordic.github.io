@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "The Stack I Built Because Nothing Else Did This"
+title: "The Stack I Built While Learning to Use AI as a Tool"
 date: 2026-06-23
 categories: engineering
 ---
