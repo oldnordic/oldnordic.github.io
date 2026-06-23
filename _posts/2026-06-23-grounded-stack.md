@@ -173,7 +173,7 @@ magellan's call graph is a graph. The question I wanted to answer: can a GNN tra
 
 The experiment: extract graph features from magellan (call-graph edges, symbol kinds, CFG complexity, blast-zone size), label 2,474 functions by outcome quality, train a GNN. Result: 0.85 AUC. The model learns to identify promising candidates from graph structure alone.
 
-The intended pipeline connects to [openevolve](https://github.com/openevolve/openevolve), an open-source project (not mine -- credit to its authors) implementing evolutionary program synthesis. openevolve drives the improvement search; the GNN drives the nomination. The full loop:
+The intended pipeline connects to [openevolve](https://github.com/algorithmicsuperintelligence/openevolve) (by codelion / algorithmicsuperintelligence -- not mine, credit to its authors), an open-source project implementing evolutionary program synthesis. openevolve drives the improvement search; the GNN drives the nomination. The full loop:
 
 1. GNN ranks candidate functions from the call graph
 2. A subagent creates a local git branch per candidate
