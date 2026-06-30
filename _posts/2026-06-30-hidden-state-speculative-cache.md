@@ -31,18 +31,6 @@ That 76% isn't a retrieval problem. It's a coverage problem. The corpus is still
 
 ---
 
-## Some papers that informed the thinking
-
-**"Generalization through Memorization: Nearest Neighbor Language Models"** — Khandelwal et al., ICLR 2021. Probably the closest prior work. They build a datastore of (hidden state → token) pairs and interpolate it with the model's output distribution at inference time. I'm doing something structurally similar but using it differently — as a speculative skip decision rather than distribution mixing, and storing the full output distribution rather than a single token.
-
-**"Fast Inference from Transformers via Speculative Decoding"** — Leviathan et al., ICML 2023. The speculative decoding framing clarified what I was trying to solve. Their setup requires a smaller draft model of the same architecture. The question that led me here was: does the model's own past inference already contain what you'd need from a draft?
-
-**"Memorizing Transformers"** — Wu et al., ICLR 2022. They augment attention with a k-NN lookup over cached hidden states from earlier in a long sequence. Different goal (extending context length) but it reinforced that hidden states are a useful retrieval substrate.
-
-Also some recent informal writing by Jose Crespo on geometric representations in AI that pushed me toward thinking about distance geometry on the output distribution side — not peer-reviewed but worth reading.
-
----
-
 Still a prototype. Still measuring. I'll post results once the larger corpus evaluation is done.
 
 Code isn't public yet, but I'm happy to discuss — reach out.
