@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "The same graph that couldn't write a sentence solves its own arithmetic exactly"
-date: 2026-08-23
+date: 2026-08-22
 categories: graph-learning memoria
 ---
 
